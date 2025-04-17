@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
@@ -25,7 +27,7 @@ async function startBot() {
     }
   });
 
-  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+  sock.ev.on('messages.upsert', async ({ messages }) => {
     const msg = messages[0];
     if (!msg.message || msg.key.fromMe) return;
 
@@ -33,7 +35,9 @@ async function startBot() {
     const message = msg.message.conversation || msg.message.extendedTextMessage?.text;
 
     if (message?.toLowerCase() === 'oi') {
-      await sock.sendMessage(sender, { text: 'Olá! 👋 Eu sou um bot.' });
+      const botName = process.env.BOT_NAME || "Bot";
+      const resposta = process.env.RESP_OLA?.replace('$BOT_NAME', botName) || `Olá! 👋 Eu sou o ${botName}.`;
+      await sock.sendMessage(sender, { text: resposta });
     }
   });
 }
