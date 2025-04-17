@@ -1,11 +1,6 @@
 require('dotenv').config();
-const {
-  default: makeWASocket,
-  makeInMemoryStore,
-  useMultiFileAuthState,
-  DisconnectReason,
-} = require('@whiskeysockets/baileys');
-const { Boom } = require('@hapi/boom');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 
 async function startBot() {
@@ -13,7 +8,7 @@ async function startBot() {
 
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true,
+    printQRInTerminal: false,  // Desative o print QR no terminal por padrão
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -28,6 +23,12 @@ async function startBot() {
     } else if (connection === 'open') {
       console.log('✅ Bot conectado!');
     }
+  });
+
+  sock.ev.on('qr', (qr) => {
+    // Gera o QR code e ajusta para um tamanho mais compacto
+    qrcode.generate(qr, { small: true, margin: 1, ecLevel: 'L' });  // Ajuste do tamanho
+    console.log('Escaneie o QR Code!');
   });
 
   sock.ev.on('messages.upsert', async ({ messages }) => {
