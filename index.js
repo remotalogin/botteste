@@ -1,7 +1,6 @@
 require('dotenv').config();
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode');  // Para gerar QR Code como imagem
-const qrcodeTerminal = require('terminal-qrcode');  // Alternativa para gerar QR Code no terminal
+const qrcode = require('qrcode-terminal');  // Para gerar QR Code diretamente no terminal
 const fs = require('fs');
 
 async function startBot() {
@@ -9,7 +8,7 @@ async function startBot() {
 
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: false,  // Desativado, pois estamos gerando QR com outra biblioteca
+    printQRInTerminal: false,  // Desativando a impressão padrão de QR Code
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -27,21 +26,8 @@ async function startBot() {
   });
 
   sock.ev.on('qr', (qr) => {
-    // Gerar QR Code como imagem
-    qrcode.toFile('qr.png', qr, {
-      width: 150,  // Ajuste o tamanho da imagem aqui
-      margin: 1,   // Ajuste a margem aqui
-      color: {
-        dark: '#000000',  // Cor do QR Code
-        light: '#ffffff'  // Cor do fundo
-      }
-    }, (err) => {
-      if (err) throw err;
-      console.log('QR Code gerado como imagem: qr.png');
-    });
-
-    // Alternativamente, gerar o QR Code no terminal
-    qrcodeTerminal.generate(qr, { small: true, margin: 1 });
+    // Gerando o QR Code diretamente no terminal com tamanho reduzido
+    qrcode.generate(qr, { small: true, margin: 1, ecLevel: 'L' });
     console.log('Escaneie o QR Code!');
   });
 
