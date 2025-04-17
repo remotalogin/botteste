@@ -1,2 +1,10 @@
+# Ignorar a pasta de sessão do WhatsApp
 session/
+session.zip
+
+# Ignorar node_modules
+node_modules/
+
+# Ignorar arquivos temporários
+*.log
 .env
