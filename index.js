@@ -1,29 +1,32 @@
 require('dotenv').config();
-
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const {
+  default: makeWASocket,
+  makeInMemoryStore,
+  useMultiFileAuthState,
+  DisconnectReason,
+} = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
 
-const { state, saveState } = useSingleFileAuthState('./session/auth_info.json');
-
 async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState('session');
+
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: true,
   });
 
-  sock.ev.on('creds.update', saveState);
+  sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === 'close') {
-      const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+      const shouldReconnect =
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('Conexão fechada. Reconectando:', shouldReconnect);
-      if (shouldReconnect) {
-        startBot();
-      }
+      if (shouldReconnect) startBot();
     } else if (connection === 'open') {
-      console.log('Bot conectado com sucesso! ✅');
+      console.log('✅ Bot conectado!');
     }
   });
 
@@ -32,11 +35,14 @@ async function startBot() {
     if (!msg.message || msg.key.fromMe) return;
 
     const sender = msg.key.remoteJid;
-    const message = msg.message.conversation || msg.message.extendedTextMessage?.text;
+    const message =
+      msg.message.conversation || msg.message.extendedTextMessage?.text;
 
     if (message?.toLowerCase() === 'oi') {
-      const botName = process.env.BOT_NAME || "Bot";
-      const resposta = process.env.RESP_OLA?.replace('$BOT_NAME', botName) || `Olá! 👋 Eu sou o ${botName}.`;
+      const botName = process.env.BOT_NAME || 'Bot';
+      const resposta =
+        process.env.RESP_OLA?.replace('$BOT_NAME', botName) ||
+        `Olá! 👋 Eu sou o ${botName}.`;
       await sock.sendMessage(sender, { text: resposta });
     }
   });
