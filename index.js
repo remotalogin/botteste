@@ -43,7 +43,7 @@ async function startBot() {
       const botName = process.env.BOT_NAME || 'Bot';
       const resposta =
         process.env.RESP_OLA?.replace('$BOT_NAME', botName) ||
-        `Olá! 👋 Eu sou o ${botName}.`;
+        `Olá! 👋 Eu sou uma bot legal ${botName}.`;
       await sock.sendMessage(sender, { text: resposta });
     }
   });
